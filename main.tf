@@ -9,21 +9,20 @@ provider "aws" {
   }
 }
 
-
-# data "aws_ami" "my_ami" {
-#   most_recent = true
-#   owners = ["231873460872"]
+ data "aws_ami" "my_ami" {
+   most_recent = true
+  owners = ["231873460872"]
   
 
-# #   filter {
-# #     name   = "name"
-# #     values = ["389DS"]
-# #   }
-# #   filter {
-# #     name = "owner-id"
-# #     values = ["231873460872"]
-# #   }
-# }
+   filter {
+    name   = "tag:name"
+     values = ["Template_OracleLinux8-new"]
+  }
+   filter {
+     name = "owner-id"
+     values = ["231873460872"]
+   }
+ }
 
 
 #-------------------------------------------------------------------------------

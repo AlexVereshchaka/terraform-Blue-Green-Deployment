@@ -4,25 +4,25 @@ provider "aws" {
   default_tags {
     tags = {
       CreatedBy = "Terraform"
-      Goal    = "Test-Blue/Green Deployment"
+      Goal      = "Test-Blue/Green Deployment"
     }
   }
 }
 
- data "aws_ami" "my_ami" {
-   most_recent = true
-  owners = ["231873460872"]
-  
 
-   filter {
-    name   = "tag:name"
-     values = ["Template_OracleLinux8-new"]
+data "aws_ami" "my_ami" {
+  most_recent = true
+
+
+  filter {
+    name   = "tag:Name"
+    values = ["Template_OracleLinux8-new"]
   }
-   filter {
-     name = "owner-id"
-     values = ["231873460872"]
-   }
- }
+  filter {
+    name = "owner-id"
+    values = ["231873460872"]
+  }
+}
 
 
 #-------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ resource "aws_default_subnet" "default_az1" {
 
 resource "aws_launch_template" "server" {
   name                   = "Blue-Green-LT"
-  image_id               = "ami-07e910bcd63425b7a"
+  image_id               = data.aws_ami.my_ami.id
   instance_type          = "t2.nano"
   vpc_security_group_ids = [data.aws_security_group.default.id]
   user_data              = filebase64("./user_data.sh")
@@ -73,23 +73,23 @@ resource "aws_autoscaling_group" "server" {
 resource "aws_lb" "nlb" {
   name               = "Blue-Green-NLB"
   load_balancer_type = "network"
-  internal = true
-  security_groups    = [data.aws_security_group.default.id]
+  internal           = true
+#   security_groups    = [data.aws_security_group.default.id]
   subnets            = [aws_default_subnet.default_az1.id]
 }
 
 resource "aws_lb_target_group" "server_nlb" {
   name                 = "Blue-Green-TG"
   vpc_id               = data.aws_vpc.procard.id
-  port                 = 80
-  protocol             = "tcp"
+  port                 = 22
+  protocol             = "TCP"
   deregistration_delay = 10 # seconds
 }
 
 resource "aws_lb_listener" "tcp" {
   load_balancer_arn = aws_lb.nlb.arn
-  port              = "80"
-  protocol          = "tcp"
+  port              = "22"
+  protocol          = "TCP"
 
   default_action {
     type             = "forward"
